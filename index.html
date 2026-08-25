@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Loading sign-up…</title>
+  <style>
+    body {
+      font-family: -apple-system, Helvetica, Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: #f4f5f7;
+      color: #444;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="msg">Loading…</div>
+  <script>
+    // The one file you actually edit is link.txt, next to this page — this
+    // file itself never needs to change. Cache-busted with the current
+    // time so a browser/CDN cache never serves a stale link.
+    fetch("link.txt?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.text(); })
+      .then(function (url) {
+        url = url.trim();
+        if (url) {
+          window.location.replace(url);
+        } else {
+          document.getElementById("msg").textContent =
+            "No link set yet — edit link.txt on GitHub.";
+        }
+      })
+      .catch(function () {
+        document.getElementById("msg").textContent =
+          "Couldn't load the link — check the tablet's WiFi.";
+      });
+  </script>
+</body>
+</html>
