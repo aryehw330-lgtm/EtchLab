@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Loading sign-up…</title>
+  <title>Loading sign-up...</title>
   <style>
     body {
       font-family: -apple-system, Helvetica, Arial, sans-serif;
@@ -19,25 +19,32 @@
   </style>
 </head>
 <body>
-  <div id="msg">Loading…</div>
+  <div id="msg">Loading...</div>
   <script>
-    // The one file you actually edit is link.txt, next to this page — this
+    // The one file you actually edit is link.txt, next to this page - this
     // file itself never needs to change. Cache-busted with the current
     // time so a browser/CDN cache never serves a stale link.
     fetch("link.txt?t=" + Date.now(), { cache: "no-store" })
       .then(function (r) { return r.text(); })
       .then(function (url) {
         url = url.trim();
+        // Typing a link without "https://" in front (e.g. "google.com"
+        // instead of "https://google.com") is a natural, easy mistake -
+        // without this, the browser treats it as a page INSIDE this same
+        // site instead of an outside link, landing on a confusing 404.
+        if (url && !/^https?:\/\//i.test(url)) {
+          url = "https://" + url;
+        }
         if (url) {
           window.location.replace(url);
         } else {
           document.getElementById("msg").textContent =
-            "No link set yet — edit link.txt on GitHub.";
+            "No link set yet - edit link.txt on GitHub.";
         }
       })
       .catch(function () {
         document.getElementById("msg").textContent =
-          "Couldn't load the link — check the tablet's WiFi.";
+          "Couldn't load the link - check the tablet's WiFi.";
       });
   </script>
 </body>
