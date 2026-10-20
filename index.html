@@ -14,12 +14,44 @@
 </head>
 <body>
   <div id="msg">Loading...</div>
-  <iframe id="app" title="Sign-up"></iframe>
+  <iframe id="app" name="app" title="Sign-up"></iframe>
   <script>
-    // Same idea as the main page: the one file you edit is link.txt. The
-    // difference is this page shows the sign-up INSIDE itself instead of
-    // sending the tablet to Google's address, which hides Google's
-    // "This application was created by a Google Apps Script user" bar.
+    // The one file you edit is link.txt. This page shows the sign-up INSIDE
+    // itself (full-screen frame) instead of sending the tablet to Google's
+    // address, which hides Google's "created by a Google Apps Script user" bar.
+    // The sign-up page, opened with ?embed=1, asks this page (postMessage) to
+    // load its next screen (after Submit, "Submit another item", "Check your
+    // spot") in the same frame, so the tablet never leaves this page.
+    var BASE = "";
+    var frame = document.getElementById("app");
+    function show() { document.getElementById("msg").style.display = "none"; frame.style.display = "block"; }
+
+    window.addEventListener("message", function (ev) {
+      var d = ev.data;
+      if (!d || d.lnh !== 1 || !BASE) return;
+      var u, b;
+      try { u = new URL(d.action); b = new URL(BASE); } catch (x) { return; }
+      // Only ever load the event's own sign-up address (set in link.txt).
+      if (u.origin + u.pathname !== b.origin + b.pathname) return;
+      u.searchParams.set("embed", "1");
+      var fields = d.fields || [];
+      if (d.method === "post") {
+        var form = document.createElement("form");
+        form.method = "post"; form.action = u.toString(); form.target = "app"; form.style.display = "none";
+        fields.forEach(function (kv) {
+          var i = document.createElement("input");
+          i.type = "hidden"; i.name = kv[0]; i.value = kv[1]; form.appendChild(i);
+        });
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+      } else {
+        fields.forEach(function (kv) { u.searchParams.set(kv[0], kv[1]); });
+        frame.src = u.toString();
+      }
+      try { ev.source.postMessage({ lnhAck: 1 }, "*"); } catch (x) {}
+    });
+
     fetch("link.txt?t=" + Date.now(), { cache: "no-store" })
       .then(function (r) { return r.text(); })
       .then(function (url) {
@@ -29,11 +61,12 @@
           document.getElementById("msg").textContent = "No link set yet - edit link.txt on GitHub.";
           return;
         }
-        var f = document.getElementById("app");
-        f.onload = function () { document.getElementById("msg").style.display = "none"; f.style.display = "block"; };
-        f.src = url;
-        // If the frame is slow, show it anyway after a few seconds.
-        setTimeout(function () { document.getElementById("msg").style.display = "none"; f.style.display = "block"; }, 6000);
+        BASE = url;
+        var u = new URL(url);
+        u.searchParams.set("embed", "1");
+        frame.onload = show;
+        frame.src = u.toString();
+        setTimeout(show, 6000);
       })
       .catch(function () {
         document.getElementById("msg").textContent = "Couldn't load the link - check the tablet's WiFi.";
