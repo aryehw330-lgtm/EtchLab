@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign-up</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0b0910; color: #fff;
+      font-family: -apple-system, Helvetica, Arial, sans-serif; }
+    #msg { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 20px; }
+    #app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: 0; display: none; }
+  </style>
+</head>
+<body>
+  <div id="msg">Loading...</div>
+  <iframe id="app" title="Sign-up"></iframe>
+  <script>
+    // Same idea as the main page: the one file you edit is link.txt. The
+    // difference is this page shows the sign-up INSIDE itself instead of
+    // sending the tablet to Google's address, which hides Google's
+    // "This application was created by a Google Apps Script user" bar.
+    fetch("link.txt?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.text(); })
+      .then(function (url) {
+        url = url.trim();
+        if (url && !/^https?:\/\//i.test(url)) { url = "https://" + url; }
+        if (!url) {
+          document.getElementById("msg").textContent = "No link set yet - edit link.txt on GitHub.";
+          return;
+        }
+        var f = document.getElementById("app");
+        f.onload = function () { document.getElementById("msg").style.display = "none"; f.style.display = "block"; };
+        f.src = url;
+        // If the frame is slow, show it anyway after a few seconds.
+        setTimeout(function () { document.getElementById("msg").style.display = "none"; f.style.display = "block"; }, 6000);
+      })
+      .catch(function () {
+        document.getElementById("msg").textContent = "Couldn't load the link - check the tablet's WiFi.";
+      });
+  </script>
+</body>
+</html>
